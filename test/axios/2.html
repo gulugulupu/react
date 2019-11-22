@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+
+<body>
+  <button id="btn1">按钮1</button>
+  <button id="btn2">按钮2</button>
+  <button id="btn3">按钮3</button>
+  <script src="https://cdn.bootcss.com/axios/0.19.0/axios.min.js"></script>
+  <script>
+    const btn1 = document.getElementById('btn1')
+    const btn2 = document.getElementById('btn2')
+    const btn3 = document.getElementById('btn3')
+    
+    /* 
+      问题：发送axios中有太多重复代码，需要复用/简化
+      解决：axios拦截器
+    */
+
+
+    let token = '';
+// axiosInstance就是Axios实例对象，它的用法和axios基本一样
+    const axiosInstance =axios.create({
+      baseURL:'http://localhost:5000/api',
+      timeout:10000,  //若请求超过10秒没有响应就会中断
+      hearders:{
+        //放公共的请求参数   因为let token ='' 所以不能写值
+      }
+    })
+
+    //设置axios拦截器
+    // 请求拦截器: 在axios发送请求之前触发的拦截器回调函数
+    /* 
+        请求拦截器的基本设置 axiosInstance.interceptors.request.use({}{})
+        里面传两个函数   config  error    回调函数  先触发函数 再发送请求
+
+     */ 
+
+    axiosInstance.interceptors.request.use(
+      // 将要发送请求是成功的（内部没有出错）触发回调函数
+      (config) => {
+        // console.log(config); // 请求配置信息
+        // 功能：修改请求信息
+        if (config.method === 'post') {
+          config.headers['content-type'] = 'application/x-www-form-urlencoded';
+          /* 
+            修改data数据 成 urlencoded
+              { key1: value1, key2: value2 } ---> 'key1=value1&key2=value2'
+          */
+          //字符串类型用reduse  prev 之前的值   key 某一个属性名
+          config.data = Object.keys(config.data).reduce((prev, key) => {
+            const value = config.data[key];
+           // 因为&会生成前后两个  所以用substring清除 
+            return prev + `&${key}=${value}`;
+          }, '').substring(1);
+        }
+        // 判断是否有token   登陆无token  除此之外都有 
+        // 添加公共请求参数   authorization = 'Bearer ' + token;
+        if (token) {
+          config.headers.authorization = 'Bearer ' + token;
+        }
+
+        return config;
+      },
+    )
+    //请求拦截器完成
+    
+
+
+    btn1.onclick = function () {
+      // 发送请求
+      /*
+        在axios中默认post请求的content-type是application/json
+        但是，有可能公司要求content-type用application/x-www-form-urlencoded
+      */
+      axios({
+          method: 'POST',
+          url: '/login',
+          data: {
+            username: 'admin',
+            password: 'admin'
+          },
+        })
+        .then((response) => {
+          if (response.data.status === 0) {
+            // 登录成功
+            console.log(response.data.data);
+
+            token = response.data.data.token;
+          } else {
+            // 登录失败
+            alert(response.data.msg);
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+          alert('网络出错~');
+        })
+    }
+
+    btn2.onclick = function () {
+      axios({
+          method: 'GET',
+          url: 'http://localhost:5000/api/category/get',
+        })
+        .then((response) => {
+          if (response.data.status === 0) {
+            console.log(response.data.data);
+          } else {
+            alert(response.data.msg);
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+          alert('网络出错~');
+        })
+    }
+
+    btn3.onclick = function () {
+      axios({
+          method: 'POST',
+          url: '/category/add',
+          data: {categoryName:'鼠标'}
+          ,
+          headers: {
+        
+          }
+        })
+        .then((response) => {
+          if (response.data.status === 0) {
+            console.log(response.data.data);
+          } else {
+            alert(response.data.msg);
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+          alert('网络出错~');
+        })
+    }
+  </script>
+</body>
+
+</html>

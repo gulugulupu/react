@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+<body>
+  <button id="btn1">按钮1</button>
+  <button id="btn2">按钮2</button>
+  <button id="btn3">按钮3</button>
+  <script src="https://cdn.bootcss.com/axios/0.19.0-beta.1/axios.min.js"></script>
+  <script>
+    //1.点击按钮发送请求
+    const btn1=document.getElementById('btn1')
+    const btn2=document.getElementById('btn2')
+    const btn3=document.getElementById('btn3')
+    
+    //用来拼接token  btn2  btn3中
+    let token = '';
+
+    //2.绑定点击事件
+    btn1.onclick=function(){
+      //发送请求
+      /* axios中默认post请求的content-type是application/json
+         但 有可能公司要求content-type用application/x-www-form-urlencoded
+       */
+     
+      axios({
+        //传对象
+        method:'post',//请求方式
+        url:"http://localhost:5000/api/login",//请求地址
+
+        /* 
+        // 1.1 application/json 形式
+        data:{
+          username:'admin',
+          password:'admin'
+        } //请求参数
+        */
+
+
+       //1.2 application/x-www-form-urlencoded 形式
+        data:"username=admin&password=admin",
+
+       // 用application/x-www-form-urlencoded 形式 要有请求头
+       headers:{
+        /* 表单项请求 因为是登录请求  所以无 authorization: 'Bearer ' + token
+           其他请求要有 */
+        'content-type': 'application/x-www-form-urlencoded'
+       }
+      })
+
+      //返回值为promise对象  所以.then方法
+      //.then代表请求成功   并不代表功能成功   进行判断
+      .then((response)=>{
+        if(response.data.status === 0){
+         // 登陆成功
+         console.log(response.data.data);
+        }else{
+          //登陆失败
+          console.log(response.data.data);
+          alert(response.data.mag);
+        }
+      })
+      //别的失败错误
+      .catch((error)=>{
+        console.log(error)
+        alert('网络出错');
+      })
+    }
+
+    btn2.onclick = function () {
+      axios({
+          method: 'GET',
+          url: 'http://localhost:5000/api/category/get',
+          headers: {
+            authorization: 'Bearer ' + token
+          }
+        })
+        .then((response) => {
+          if (response.data.status === 0) {
+            console.log(response.data.data);
+          } else {
+            alert(response.data.msg);
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+          alert('网络出错~');
+        })
+    }
+    
+
+    //2.绑定点击事件
+      //发送请求
+      /* axios中默认post请求的content-type是application/json
+         但 有可能公司要求content-type用application/x-www-form-urlencoded
+       */
+        //传对象
+        //请求方式
+        //请求地址
+        //请求参数
+        
+       //1.2 application/x-www-form-urlencoded 形式
+       // 用application/x-www-form-urlencoded 形式 要有请求头
+        /* 表单项请求 因为是登录请求  所以无 authorization: 'Bearer ' + token
+           其他请求要有 */
+      //返回值为promise对象  所以.then方法
+      //.then代表请求成功   并不代表功能成功   进行判断
+      //别的失败错误
+      //.catch 返回错误信息
+      btn3.onclick =function(){
+        axios({
+          mathod:"POST",
+          url:'http://localhost:5000/api/category/add',
+          data:"categoryName=鼠标",
+          headers:{
+            'content-type':'application/x-www-form-urlencoded',
+            authorization:'Bearer'+token
+          }
+        })
+        .then((response)=>{
+          if(response.data.status===0){
+            console.log(response.data.data);
+          }else{
+            console.log(response.data.msg);
+          }
+        })
+        .catch(()=>{
+          console.log(error);
+          alert('网络错误~');
+        })
+      }
+  </script>
+</body>
+</html>
