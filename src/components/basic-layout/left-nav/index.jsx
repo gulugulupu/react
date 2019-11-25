@@ -1,5 +1,7 @@
 import React, { Component } from "react";
+import PropTypes from "prop-types";
 import { Menu, Icon } from "antd";
+import { withTranslation } from "react-i18next";
 /*
   需求：给非路由组件传递路由组件的三大属性
   解决：withRouter是一个高阶组件
@@ -12,14 +14,15 @@ import logo from "../../../assets/logo.png";
 import "./index.less";
 
 const { SubMenu } = Menu;
-
+@withTranslation()
 @withRouter
 class LeftNav extends Component {
-  state = {
-    menus: []
+  static propTypes = {
+    isDisplay: PropTypes.bool.isRequired
   };
 
   createMenus = menus => {
+    const { t } = this.props;
     return menus.map(menu => {
       if (menu.children) {
         return (
@@ -28,7 +31,7 @@ class LeftNav extends Component {
             title={
               <span>
                 <Icon type={menu.icon} />
-                <span>{menu.title}</span>
+                <span>{t("layout.leftNav." + menu.title)}</span>
               </span>
             }
           >
@@ -42,11 +45,12 @@ class LeftNav extends Component {
   };
 
   createCMenus = menu => {
+    const { t } = this.props;
     return (
       <Menu.Item key={menu.path}>
         <Link to={menu.path}>
           <Icon type={menu.icon} />
-          <span>{menu.title}</span>
+          <span>{t("layout.leftNav." + menu.title)}</span>
         </Link>
       </Menu.Item>
     );
@@ -64,21 +68,19 @@ class LeftNav extends Component {
     }
   };
 
-  componentDidMount() {
-    this.setState({
-      menus: this.createMenus(menus)
-    });
-  }
 
   render() {
     const { pathname } = this.props.location;
     const openKey = this.findOpenKey(menus, pathname);
-
+    const { t } = this.props;
+    const menusList = this.createMenus(menus);
     return (
       <div>
         <div className="layout-logo">
           <img src={logo} alt="logo" />
-          <h1>硅谷后台</h1>
+          <h1 style={{ display: this.props.isDisplay ? "block" : "none" }}>
+            {t("layout.leftNav.title")}
+          </h1>
         </div>
         <Menu
           theme="dark"
@@ -86,7 +88,7 @@ class LeftNav extends Component {
           defaultOpenKeys={[openKey]}
           mode="inline"
         >
-          {this.state.menus}
+          {menusList}
         </Menu>
       </div>
     );
